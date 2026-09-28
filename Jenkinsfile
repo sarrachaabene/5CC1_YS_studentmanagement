@@ -23,8 +23,19 @@ pipeline {
                     env.BRANCHE = (env.GIT_BRANCH ?: 'main').replaceAll('^origin/', '')
                     env.TAG = "${env.BRANCHE}-${env.BUILD_NUMBER}"
                 }
-                sh 'git log -1 --pretty=format:"%h - %an : %s"'
-                echo "Branche : ${env.BRANCHE} ? tag de l'image : ${env.TAG}"
+                echo 'Informations sur le dernier commit :'
+                sh '''
+                    echo "Hash court :"
+                    git log -1 --pretty=format:"%h"
+                    echo ""
+                    echo "Auteur :"
+                    git log -1 --pretty=format:"%an"
+                    echo ""
+                    echo "Message :"
+                    git log -1 --pretty=format:"%s"
+                    echo ""
+                '''
+                echo "Branche : ${env.BRANCHE} ; tag de l'image : ${env.TAG}"
             }
         }
 
@@ -47,7 +58,7 @@ pipeline {
 
         stage('Docker build') {
             steps {
-                sh "docker build -t ${IMAGE}:${TAG} ."
+                sh 'docker build -t ${IMAGE}:${TAG} .'
             }
         }
 
@@ -59,12 +70,12 @@ pipeline {
                     passwordVariable: 'DH_PASS'
                 )]) {
                     sh 'echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin'
-                    sh "docker push ${IMAGE}:${TAG}"
+                    sh 'docker push ${IMAGE}:${TAG}'
 
                     script {
                         if (env.BRANCHE == 'main') {
-                            sh "docker tag ${IMAGE}:${TAG} ${IMAGE}:latest"
-                            sh "docker push ${IMAGE}:latest"
+                            sh 'docker tag ${IMAGE}:${TAG} ${IMAGE}:latest'
+                            sh 'docker push ${IMAGE}:latest'
                         }
                     }
 
@@ -73,7 +84,7 @@ pipeline {
             }
         }
 
-        stage('D?ploiement') {
+        stage('Déploiement') {
             when {
                 expression { env.BRANCHE == 'main' }
             }
@@ -87,13 +98,13 @@ pipeline {
     post {
         success {
             archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-            echo "Succ?s : image ${IMAGE}:${TAG} publi?e sur Docker Hub."
+            echo "Succès : image ${IMAGE}:${TAG} publiée sur Docker Hub."
         }
         failure {
-            echo "?chec : consulter la Console Output du stage en rouge."
+            echo 'Échec : consulter la Console Output du stage en rouge.'
         }
         always {
-            sh 'docker image rm -f "$IMAGE:$TAG" || true'
+            sh 'docker image rm -f "${IMAGE}:${TAG}" || true'
         }
     }
 }
