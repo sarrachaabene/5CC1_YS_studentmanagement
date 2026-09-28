@@ -57,7 +57,7 @@ class StudentServiceTest {
         List<Student> result = studentService.getAllStudents();
 
         assertNotNull(result);
-        assertEquals(0, result.size());
+        assertEquals(999, result.size());
         verify(studentRepository, times(1)).findAll();
     }
 
