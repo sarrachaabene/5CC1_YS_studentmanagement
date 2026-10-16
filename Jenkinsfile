@@ -69,17 +69,18 @@ pipeline {
                     usernameVariable: 'DH_USER',
                     passwordVariable: 'DH_PASS'
                 )]) {
-                    sh 'echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin'
-                    sh 'docker push ${IMAGE}:${TAG}'
+                    sh '''
+                        set +x
+                        echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
+                        docker push "${IMAGE}:${TAG}"
 
-                    script {
-                        if (env.BRANCHE == 'main') {
-                            sh 'docker tag ${IMAGE}:${TAG} ${IMAGE}:latest'
-                            sh 'docker push ${IMAGE}:latest'
-                        }
-                    }
+                        if [ "$BRANCHE" = "main" ]; then
+                            docker tag "${IMAGE}:${TAG}" "${IMAGE}:latest"
+                            docker push "${IMAGE}:latest"
+                        fi
 
-                    sh 'docker logout'
+                        docker logout
+                    '''
                 }
             }
         }
@@ -98,12 +99,13 @@ pipeline {
     post {
         success {
             archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-            echo "Succès : image ${IMAGE}:${TAG} publiée sur Docker Hub."
+            echo "Succès : image ${IMAGE}:${TAG} traitée avec succès."
         }
         failure {
             echo 'Échec : consulter la Console Output du stage en rouge.'
         }
         always {
+            sh 'docker logout || true'
             sh 'docker image rm -f "${IMAGE}:${TAG}" || true'
         }
     }
