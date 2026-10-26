@@ -10,7 +10,7 @@
     </parent>
     <groupId>tn.esprit</groupId>
     <artifactId>student-management</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.1-SNAPSHOT</version>
     <name>student-management</name>
     <description>student-management</description>
     <url/>
@@ -61,6 +61,19 @@
             <version>2.1.0</version>
         </dependency>
     </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>deploymentRepo</id>
+            <name>Nexus - releases</name>
+            <url>http://localhost:8081/repository/maven-releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>deploymentRepo</id>
+            <name>Nexus - snapshots</name>
+            <url>http://localhost:8081/repository/maven-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <build>
     <plugins>
